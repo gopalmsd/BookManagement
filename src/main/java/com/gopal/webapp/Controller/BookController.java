@@ -1,10 +1,10 @@
 package com.gopal.webapp.Controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,13 +17,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gopal.webapp.Exception.BookAlreadyPresentException;
 import com.gopal.webapp.Model.Book;
+import com.gopal.webapp.Model.Reader;
 import com.gopal.webapp.Service.BookService;
+import com.gopal.webapp.Service.ReaderService;
 
 @RestController
 @RequestMapping("book/api")
 public class BookController {
 	@Autowired
 	private BookService bookserv;
+	
+	@Autowired
+	private ReaderService rs;
 	
 	@PostMapping("/addbook")
 	public ResponseEntity<?> addBook(@RequestBody Book book) throws BookAlreadyPresentException{
@@ -40,6 +45,11 @@ public class BookController {
 		List<Book> bookList =bookserv.getAllBook();
 		
 		if(bookList != null) {
+			
+			for(Book b: bookList) {
+				Set<Reader> readerList =rs.getAllReaders(b.getBookId());
+				b.setReaderList(readerList);
+			}
 			return new ResponseEntity<List<Book>>(bookList ,HttpStatus.OK);
 		}
 		else 
@@ -49,7 +59,7 @@ public class BookController {
 	
 	@DeleteMapping("/delete/{bid}")
 	public ResponseEntity<?> deleteBook(@PathVariable("bid") int bid){
-		if(bookserv.deleteBook(bid)) {
+		if(bookserv.deleteBook(bid) & rs.deleteReader(bid)) {
 			return new ResponseEntity<String>("yeah Book Is Deleted",HttpStatus.OK);
 		}
 		return new ResponseEntity<String>("Book is not deleted from table",HttpStatus.INTERNAL_SERVER_ERROR);

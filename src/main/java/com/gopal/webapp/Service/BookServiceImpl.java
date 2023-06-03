@@ -48,6 +48,7 @@ public class BookServiceImpl implements BookService{
 		Book book1 = bookrepo.getById(book.getBookId());
 				if(book1 != null) {
 					book1.setBookPrice(book.getBookPrice());
+					book1.setReaderName(book.getReaderName());
 					bookrepo.saveAndFlush(book1);
 				}
 		return true;
